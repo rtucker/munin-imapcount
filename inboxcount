@@ -1,0 +1,146 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# A munin plugin for tracking IMAP message quantities.  Tuned specifically
+# for gmail, but it can be widged to work with other IMAP servers too.
+
+# Install it by calling it /etc/munin/plugins/inboxcount, set your
+# username and password below, and create symlinks to it from "sendrate",
+# "spamometer", and "spamrate".  Also, it would probably be a good idea to
+# chmod 640 and chown root.munin this, since it has your e-mail password
+# in it.
+
+# Restart munin-node and it'll hopefully work.
+
+# Inspired by:
+# http://mail.python.org/pipermail/python-list/2003-February/189850.html
+
+# Ryan Tucker <rtucker@gmail.com> 2009/03/18
+
+# Set your username and password here
+username = 'BLAH@gmail.com'
+password = 'urmom'
+
+# for caching the rate-based graphs
+outfile = '/var/run/munin/inboxcount'
+
+import imaplib
+import os
+import sys
+
+myname = os.path.split(sys.argv[0])[-1]
+
+class ImapCheckResult:
+    def __init__(self):
+	self.total_messages = 0
+	self.unseen_messages= 0
+	self.deleted_messages = 0
+	self.answered_messages = 0
+	self.seen_messages = 0
+    
+    def __repr__(self):
+	return "total.value %i\nunseen.value %i\nseen.value %i\ndeleted.value %i\nanswered.value %i" % (self.total_messages, self.unseen_messages, self.seen_messages, self.deleted_messages, self.answered_messages)
+
+def do_imap_login(host, user, passwd):
+    imap = imaplib.IMAP4_SSL(host)
+    imap.login(user, passwd)
+    return imap
+
+def check_imap_folder(imap, foldername):
+    result = ImapCheckResult()
+    typ, data = imap.select(foldername, 1)
+    result.total_messages = int(data[0])
+    typ, data = imap.search(None, 'UNSEEN')
+    result.unseen_messages = len(data[0].split())
+    typ, data = imap.search(None, 'SEEN')
+    seen_messages_tmp = len(data[0].split())
+    typ, data = imap.search(None, 'DELETED')
+    result.deleted_messages = len(data[0].split())
+    typ, data = imap.search(None, 'ANSWERED')
+    result.answered_messages = len(data[0].split())
+    # fudge seen messages to remove deleted messages
+    if seen_messages_tmp > result.deleted_messages:
+      result.seen_messages = seen_messages_tmp - result.deleted_messages
+    else:
+      result.seen_messages = 0
+    return result
+
+def print_config(type='inboxcount'):
+	# outputs the configuration for a given instance
+	if type == 'inboxcount':
+		print """graph_title IMAP Message States for rtucker@gmail.com
+graph_args --base 1000 -l 0
+graph_vlabel quantity
+graph_category User
+graph_info This graph indicates the number and state of messages in my inbox.
+unseen.label Unseen Messages
+unseen.info Messages that are unread (fresh and bold).
+seen.label Seen Messages
+seen.info Messages that have been read but haven't yet been selected for archiving.
+deleted.label Deleted Messages
+deleted.info Messages in queue to be archived, awaiting an EXPUNGE command.
+answered.label Answered Messages
+answered.info Messages to which a reply has been sent.
+starred.label Starred Messages
+starred.info Messages marked for handling in the future."""
+	elif type == 'spamrate':
+		print """graph_title Spam Infiltration Rate
+graph_args --base 1000 -l 0
+graph_vlabel Rate
+graph_category User
+graph_info Displays the rate at which new spam are arriving per five minutes
+graph_period minute
+spamrate.label Spam infiltration
+spamrate.info Rate of spam infiltration
+spamrate.type DERIVE
+spamrate.min 0"""
+	elif type == 'spamometer':
+		print """graph_title Spamometer
+graph_args --base 1000 -l 0
+graph_vlabel Spams
+graph_category User
+graph_info Shows the total count of spam in my spam trap.
+spamometer.label Spamometer
+spamometer.info Total spam in spam purgatory."""
+	elif type == 'sendrate':
+		print """graph_title E-mail Send Rate
+graph_args --base 1000 -l 0
+graph_vlabel Sends per five minutes
+graph_category User
+graph_info A visual representation of how many e-mails I'm sending per five minutes.
+graph_period minute
+sendrate.label Send Rate
+sendrate.info The rate at which I am sending e-mail per five minutes
+sendrate.type DERIVE
+sendrate.min 0"""
+
+def send_cached_value(type):
+	infd = open(outfile, 'r')
+	for i in infd.readlines():
+		if i.split()[0] == type + '.value':
+			print i
+
+def main():
+    if len(sys.argv) > 1 and sys.argv[1] == 'config':
+      print_config(myname)
+    else:
+      outfd = open(outfile, 'w')
+      imap = do_imap_login("imap.gmail.com", username, password)
+      print check_imap_folder(imap, "INBOX")
+      senttotal = int(imap.select('Sent', 1)[1][0]) + int(imap.select('[Gmail]/Sent Mail', 1)[1][0])
+      starredtotal = int(imap.select('[Gmail]/Starred', 1)[1][0])
+      spamtotal = int(imap.select('[Gmail]/Spam', 1)[1][0])
+      print 'starred.value %i' % starredtotal
+      imap.logout()
+      outfd.write('sendrate.value %i\nspamometer.value %i\nspamrate.value %i\n' % (senttotal, spamtotal, spamtotal))
+      outfd.close()
+
+if __name__ == '__main__':
+	if myname == 'inboxcount':
+		main()
+	else:
+		if len(sys.argv) > 1 and sys.argv[1] == 'config':
+			print_config(myname)
+		else:
+			send_cached_value(myname)
+
