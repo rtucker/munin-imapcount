@@ -68,7 +68,7 @@ def check_imap_folder(imap, foldername):
 def print_config(type='inboxcount'):
 	# outputs the configuration for a given instance
 	if type == 'inboxcount':
-		print """graph_title IMAP Message States for rtucker@gmail.com
+		print """graph_title IMAP Message States for %s
 graph_args --base 1000 -l 0
 graph_vlabel quantity
 graph_category User
@@ -82,7 +82,7 @@ deleted.info Messages in queue to be archived, awaiting an EXPUNGE command.
 answered.label Answered Messages
 answered.info Messages to which a reply has been sent.
 starred.label Starred Messages
-starred.info Messages marked for handling in the future."""
+starred.info Messages marked for handling in the future.""" % username
 	elif type == 'spamrate':
 		print """graph_title Spam Infiltration Rate
 graph_args --base 1000 -l 0
