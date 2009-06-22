@@ -1,0 +1,27 @@
+A munin plugin for tracking IMAP message quantities.  Tuned specifically
+for gmail, but it can be widged to work with other IMAP servers too.
+
+Install it by calling it /etc/munin/plugins/inboxcount, set your
+username and password below, and create symlinks to it from "sendrate",
+"spamometer", and "spamrate".  Also, it would probably be a good idea to
+chmod 640 and chown root.munin this, since it has your e-mail password
+in it.
+
+Restart munin-node and it'll hopefully work.
+
+Questions -> rtucker@gmail.com
+
+TODO LIST
+---------
+* Changelog
+* License
+
+* Better installation instructions
+* Move configuration to /etc/munin/plugin-conf.d
+* Easier support for monitoring multiple mailboxes (perhaps a "total"
+  graph as well?)
+* More intelligent caching of information
+* Make sure that running it as a non-munin user doesn't barf up the /var/run
+  dropfile
+
+
