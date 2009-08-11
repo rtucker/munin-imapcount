@@ -135,7 +135,7 @@ def send_cached_value(type):
 
 def main():
     if len(sys.argv) > 1 and sys.argv[1] == 'config':
-      print_config(myname)
+      print_config(mytype)
     else:
       outfd = open(outfile, 'w')
       imap = do_imap_login(hostname, username, password)
