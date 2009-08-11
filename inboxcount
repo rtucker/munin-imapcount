@@ -88,7 +88,7 @@ starred.info Messages marked for handling in the future.""" % username
 graph_args --base 1000 -l 0
 graph_vlabel Rate
 graph_category User
-graph_info Displays the rate at which new spam are arriving per five minutes
+graph_info Displays the rate at which new spam are arriving per second
 graph_period minute
 spamrate.label Spam infiltration
 spamrate.info Rate of spam infiltration
@@ -105,12 +105,12 @@ spamometer.info Total spam in spam purgatory."""
 	elif type == 'sendrate':
 		print """graph_title E-mail Send Rate
 graph_args --base 1000 -l 0
-graph_vlabel Sends per five minutes
+graph_vlabel e-mails sent per second
 graph_category User
-graph_info A visual representation of how many e-mails I'm sending per five minutes.
+graph_info A visual representation of how many e-mails I'm sending per second
 graph_period minute
 sendrate.label Send Rate
-sendrate.info The rate at which I am sending e-mail per five minutes
+sendrate.info The rate at which I am sending e-mail
 sendrate.type DERIVE
 sendrate.min 0"""
 
