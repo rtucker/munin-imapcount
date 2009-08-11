@@ -1,0 +1,17 @@
+# Put this file in /etc/munin/plugin-conf.d/inboxcount
+# The [] headers match the name of the plugin script.
+
+[inboxcount*]
+env.username nobody@gmail.com
+env.password hunter2
+env.hostname imap.gmail.com
+
+# You can add additional accounts too -- remember the following caveats:
+#  1) Don't do inboxcountschool, as you'll collide with the above wildcard
+#  2) Don't bother with the spam/send symlinks, as they probably won't
+#     yet work :-)
+#[schoolinboxcount*]
+#env.username nobody@example.edu
+#env.password hunter2
+#env.hostname maildrop.example.edu
+

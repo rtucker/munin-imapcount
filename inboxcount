@@ -4,31 +4,44 @@
 # A munin plugin for tracking IMAP message quantities.  Tuned specifically
 # for gmail, but it can be widged to work with other IMAP servers too.
 
-# Install it by calling it /etc/munin/plugins/inboxcount, set your
-# username and password below, and create symlinks to it from "sendrate",
-# "spamometer", and "spamrate".  Also, it would probably be a good idea to
-# chmod 640 and chown root.munin this, since it has your e-mail password
-# in it.
-
-# Restart munin-node and it'll hopefully work.
+# To use:
+#  1) Copy plugin-conf.d_inboxcount to /etc/munin/plugin-conf.d/inboxcount
+#  2) Put your username/password/hostname stuff there.
+#     (Note: chmod 600 and chown munin.munin this file)
+#  3) Create some symlinks to inboxcount from:
+#     /etc/munin/plugins/inboxcount
+#     /etc/munin/plugins/inboxcount_sendrate
+#     /etc/munin/plugins/inboxcount_spamrate
+#     /etc/munin/plugins/inboxcount_spamometer
+#     (Note: The last three there only work with Gmail at this time.)
+#  4) Restart munin-node and enjoy!
 
 # Inspired by:
 # http://mail.python.org/pipermail/python-list/2003-February/189850.html
 
-# Ryan Tucker <rtucker@gmail.com> 2009/03/18
-
-# Set your username and password here
-username = 'BLAH@gmail.com'
-password = 'urmom'
-
-# for caching the rate-based graphs
-outfile = '/var/run/munin/inboxcount'
+# Ryan Tucker <rtucker@gmail.com>
 
 import imaplib
 import os
 import sys
 
 myname = os.path.split(sys.argv[0])[-1]
+myroot = myname.split('_')[0]
+
+if len(myname.split('_')) == 1:
+    mytype = 'inboxcount'
+else:
+    mytype = myname.split('_')[1]
+
+outfile = '/var/run/munin/' + myroot
+
+try:
+    username = os.environ['username']
+    password = os.environ['password']
+    hostname = os.environ['hostname']
+except KeyError:
+    sys.stderr.write('Please configure this plugin!\n')
+    sys.exit(1)
 
 class ImapCheckResult:
     def __init__(self):
@@ -125,7 +138,7 @@ def main():
       print_config(myname)
     else:
       outfd = open(outfile, 'w')
-      imap = do_imap_login("imap.gmail.com", username, password)
+      imap = do_imap_login(hostname, username, password)
       print check_imap_folder(imap, "INBOX")
       senttotal = int(imap.select('Sent', 1)[1][0]) + int(imap.select('[Gmail]/Sent Mail', 1)[1][0])
       starredtotal = int(imap.select('[Gmail]/Starred', 1)[1][0])
@@ -136,11 +149,11 @@ def main():
       outfd.close()
 
 if __name__ == '__main__':
-	if myname == 'inboxcount':
+	if mytype == 'inboxcount':
 		main()
 	else:
 		if len(sys.argv) > 1 and sys.argv[1] == 'config':
-			print_config(myname)
+			print_config(mytype)
 		else:
-			send_cached_value(myname)
+			send_cached_value(mytype)
 
