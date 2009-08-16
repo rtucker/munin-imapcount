@@ -139,7 +139,8 @@ def main():
     else:
       outfd = open(outfile, 'w')
       imap = do_imap_login(hostname, username, password)
-      print check_imap_folder(imap, "INBOX")
+      result = check_imap_folder(imap, "INBOX")
+      print result
       senttotal = int(imap.select('Sent', 1)[1][0]) + int(imap.select('[Gmail]/Sent Mail', 1)[1][0])
       starredtotal = int(imap.select('[Gmail]/Starred', 1)[1][0])
       spamtotal = int(imap.select('[Gmail]/Spam', 1)[1][0])
@@ -147,6 +148,16 @@ def main():
       imap.logout()
       outfd.write('sendrate.value %i\nspamometer.value %i\nspamrate.value %i\n' % (senttotal, spamtotal, spamtotal))
       outfd.close()
+      if 'arduino' in os.environ.keys():
+        # experimental arduino flasher support!
+        # expects four bytes, FXXX, where XXX is how "furious" the flashing
+        # of a led should be.
+        # i'd say that if i have more than 25 unread mails, it should be
+        # really furious.
+        furiousness = min(result.unseen_messages/25.0, 1) * 100
+        import serial
+        ser = serial.Serial(os.environ['arduino'], 9600)
+        ser.write('F%03i' % furiousness)
 
 if __name__ == '__main__':
 	if mytype == 'inboxcount':

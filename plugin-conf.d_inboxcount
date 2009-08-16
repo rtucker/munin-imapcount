@@ -1,10 +1,16 @@
 # Put this file in /etc/munin/plugin-conf.d/inboxcount
 # The [] headers match the name of the plugin script.
 
+# All of the values should be self-explanatory, with the exception of
+# arduino: this will send "Fxxx" to the serial device on each update,
+# with xxx being 100 for unread mails >=25 or a percentage for unread
+# mails between 0 and 25.
+
 [inboxcount*]
 env.username nobody@gmail.com
 env.password hunter2
 env.hostname imap.gmail.com
+#env.arduino /dev/ttyUSB0
 
 # You can add additional accounts too -- remember the following caveats:
 #  1) Don't do inboxcountschool, as you'll collide with the above wildcard
