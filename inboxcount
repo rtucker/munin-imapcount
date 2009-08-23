@@ -137,17 +137,20 @@ def main():
     if len(sys.argv) > 1 and sys.argv[1] == 'config':
       print_config(mytype)
     else:
-      outfd = open(outfile, 'w')
       imap = do_imap_login(hostname, username, password)
       result = check_imap_folder(imap, "INBOX")
       print result
-      senttotal = int(imap.select('Sent', 1)[1][0]) + int(imap.select('[Gmail]/Sent Mail', 1)[1][0])
-      starredtotal = int(imap.select('[Gmail]/Starred', 1)[1][0])
-      spamtotal = int(imap.select('[Gmail]/Spam', 1)[1][0])
-      print 'starred.value %i' % starredtotal
+      if hostname == 'imap.gmail.com':
+        senttotal = int(imap.select('Sent', 1)[1][0]) + int(imap.select('[Gmail]/Sent Mail', 1)[1][0])
+        starredtotal = int(imap.select('[Gmail]/Starred', 1)[1][0])
+        spamtotal = int(imap.select('[Gmail]/Spam', 1)[1][0])
+        print 'starred.value %i' % starredtotal
+        outfd = open(outfile, 'w')
+        outfd.write('sendrate.value %i\nspamometer.value %i\nspamrate.value %i\n' % (senttotal, spamtotal, spamtotal))
+        outfd.close()
+      else:
+        print 'starred.value 0'
       imap.logout()
-      outfd.write('sendrate.value %i\nspamometer.value %i\nspamrate.value %i\n' % (senttotal, spamtotal, spamtotal))
-      outfd.close()
       if 'arduino' in os.environ.keys():
         # experimental arduino flasher support!
         # expects four bytes, FXXX, where XXX is how "furious" the flashing
