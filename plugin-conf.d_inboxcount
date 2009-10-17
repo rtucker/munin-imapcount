@@ -7,6 +7,7 @@
 # mails between 0 and 25.
 
 [inboxcount*]
+user munin
 env.username nobody@gmail.com
 env.password hunter2
 env.hostname imap.gmail.com
@@ -17,6 +18,7 @@ env.hostname imap.gmail.com
 #  2) Don't bother with the spam/send symlinks, as they probably won't
 #     yet work :-)
 #[schoolinboxcount*]
+#user munin
 #env.username nobody@example.edu
 #env.password hunter2
 #env.hostname maildrop.example.edu
