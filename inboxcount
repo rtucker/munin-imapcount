@@ -89,12 +89,12 @@ graph_category User
 graph_info Tasks in my Hiveminder todo list
 unseen.label Active tasks
 unseen.info All unhidden tasks
-duetoday.label Tasks Due Today
-duetoday.info Due date is today
-overdue.label Overdue Tasks
+duetoday.label Tasks due today
+duetoday.info Tasks which are due today
+overdue.label Overdue tasks
 overdue.info Due date is before today
 hidden.label Hidden tasks
-hidden.info All tasks hidden until some future date""" % username
+hidden.info Tasks hidden until some future date""" % username
         else:
             print """graph_title IMAP Message States for %s
 graph_args --base 1000 -l 0
