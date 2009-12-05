@@ -78,12 +78,12 @@ def check_imap_folder(imap, foldername):
       result.seen_messages = 0
     return result
 
-def print_config(type='inboxcount', hostname=''):
+def print_config(type='inboxcount', hostname='', spamminimum=1):
     # outputs the configuration for a given instance
     if type == 'inboxcount':
         if hostname == 'hiveminder.com':
             print """graph_title Hiveminder States for %s
-graph_args --base 1000 -l 0 --logarithmic
+graph_args --base 1000 -l 1 --logarithmic
 graph_vlabel tasks
 graph_category User
 graph_info Tasks in my Hiveminder todo list
@@ -124,12 +124,12 @@ spamrate.type DERIVE
 spamrate.min 0"""
     elif type == 'spamometer':
         print """graph_title Spamometer
-graph_args --base 1000 -l 0 --logarithmic
+graph_args --base 1000 -l %i --logarithmic
 graph_vlabel Spams
 graph_category User
 graph_info Shows the total count of spam in my spam trap.
 spamometer.label Spamometer
-spamometer.info Total spam in spam purgatory."""
+spamometer.info Total spam in spam purgatory.""" % spamminimum
     elif type == 'sendrate':
         print """graph_title E-mail Send Rate
 graph_args --base 1000 -l 0
@@ -146,11 +146,11 @@ def send_cached_value(type):
 	infd = open(outfile, 'r')
 	for i in infd.readlines():
 		if i.split()[0] == type + '.value':
-			print i
+			return i
 
 def main():
     if len(sys.argv) > 1 and sys.argv[1] == 'config':
-      print_config(mytype, hostname)
+        print_config(mytype, hostname)
     else:
       imap = do_imap_login(hostname, username, password)
       result = check_imap_folder(imap, "INBOX")
@@ -182,11 +182,18 @@ def main():
         ser.write('F%03i' % furiousness)
 
 if __name__ == '__main__':
-	if mytype == 'inboxcount':
-		main()
-	else:
-		if len(sys.argv) > 1 and sys.argv[1] == 'config':
-			print_config(mytype)
-		else:
-			send_cached_value(mytype)
+    if mytype == 'inboxcount':
+        main()
+    else:
+        if len(sys.argv) > 1 and sys.argv[1] == 'config':
+            if mytype == 'spamometer':
+                minimum_string = send_cached_value(type='spamometer').split(' ')[1]
+                minimum_number = 10**(len(minimum_string)-3)
+                if minimum_number < 1:
+                    minimum_number = 1
+                print_config(mytype, spamminimum=minimum_number)
+            else:
+                print_config(mytype)
+        else:
+            print send_cached_value(mytype)
 
