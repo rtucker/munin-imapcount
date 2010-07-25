@@ -156,7 +156,7 @@ def main():
       result = check_imap_folder(imap, "INBOX")
       print result
       if hostname == 'imap.gmail.com':
-        senttotal = int(imap.select('Sent', 1)[1][0]) + int(imap.select('[Gmail]/Sent Mail', 1)[1][0])
+        senttotal = int(imap.select('[Gmail]/Sent Mail', 1)[1][0])
         starredtotal = int(imap.select('[Gmail]/Starred', 1)[1][0])
         spamtotal = int(imap.select('[Gmail]/Spam', 1)[1][0])
         print 'starred.value %i' % starredtotal
